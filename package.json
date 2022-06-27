@@ -1,8 +1,8 @@
 {
   "name": "todolist-v1",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "description": "Simple to-do list",
+  "main": "build/index.js",
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "rimraf dist && tsc",
