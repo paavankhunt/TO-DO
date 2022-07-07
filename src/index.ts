@@ -14,7 +14,7 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(cors({ origin: '*' }));
+app.use(cors());
 
 app.use(express.static('public'));
 let year = new Date().getFullYear();
@@ -23,6 +23,10 @@ mongoose.connect(
   // `mongodb://localhost:27017/blogDB`,
   process.env.MONGO_URL
 );
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('API running');
+});
 
 interface itemSchemaInterface extends mongoose.Document {
   name: string;
