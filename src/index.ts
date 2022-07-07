@@ -25,7 +25,11 @@ mongoose.connect(
 );
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('API running');
+  res.send({
+    message: 'Welcome to the todo App',
+    year: year,
+    database: process.env.MONGO_URL,
+  });
 });
 
 interface itemSchemaInterface extends mongoose.Document {
@@ -68,7 +72,7 @@ app.route('/ping').get((req: Request, res: Response) => {
   res.send('pong');
 });
 
-app.get('/', async (req: Request, res: Response) => {
+app.get('/todo', async (req: Request, res: Response) => {
   Item.find({}, (err: Error, foundItems: itemSchemaInterface[]) => {
     if (foundItems.length === 0) {
       Item.insertMany(defaultItems, function (err) {
@@ -78,7 +82,7 @@ app.get('/', async (req: Request, res: Response) => {
           console.log('Successfully saved default items to DB.');
         }
       });
-      res.redirect('/');
+      res.redirect('/todo');
     } else {
       res.render('list', {
         listTitle: 'Today',
@@ -103,7 +107,7 @@ app.get('/:customListName', (req: Request, res: Response) => {
             items: defaultItems,
           });
           list.save();
-          res.redirect('/' + customListName);
+          res.redirect('/todo' + customListName);
         } else {
           //Show an existing list
 
@@ -118,7 +122,7 @@ app.get('/:customListName', (req: Request, res: Response) => {
   );
 });
 
-app.post('/', (req: Request, res: Response) => {
+app.post('/todo', (req: Request, res: Response) => {
   const itemName = req.body.newItem;
   const listName = req.body.list;
 
@@ -128,14 +132,14 @@ app.post('/', (req: Request, res: Response) => {
 
   if (listName === 'Today') {
     item.save();
-    res.redirect('/');
+    res.redirect('/todo');
   } else {
     List.findOne(
       { name: listName },
       (err: Error, foundList: listSchemaInterface) => {
         foundList.items.push(item);
         foundList.save();
-        res.redirect('/' + listName);
+        res.redirect('/todo' + listName);
       }
     );
   }
@@ -149,7 +153,7 @@ app.post('/delete', (req: Request, res: Response) => {
     Item.findByIdAndRemove(checkedItemId, (err: Error) => {
       if (!err) {
         console.log('Successfully deleted checked item.');
-        res.redirect('/');
+        res.redirect('/todo');
       }
     });
   } else {
@@ -158,7 +162,7 @@ app.post('/delete', (req: Request, res: Response) => {
       { $pull: { items: { _id: checkedItemId } } },
       (err: Error, foundList: listSchemaInterface) => {
         if (!err) {
-          res.redirect('/' + listName);
+          res.redirect('/todo' + listName);
         }
       }
     );
@@ -168,11 +172,9 @@ app.post('/delete', (req: Request, res: Response) => {
 app.get('/about', (req, res) => {
   res.render('about');
 });
+
 module.exports.handler = ServerlessHttp(app);
-let port = process.env.PORT;
-if (port == null || port == '') {
-  port = '3000';
-}
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log('Server has started successfully');
 });

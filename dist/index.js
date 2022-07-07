@@ -59,7 +59,11 @@ mongoose_1.default.connect(
 // `mongodb://localhost:27017/blogDB`,
 process.env.MONGO_URL);
 app.get('/', function (req, res) {
-    res.send('API running');
+    res.send({
+        message: 'Welcome to the todo App',
+        year: year,
+        database: process.env.MONGO_URL,
+    });
 });
 var itemSchema = new mongoose_1.default.Schema({
     name: String,
@@ -83,7 +87,7 @@ var List = mongoose_1.default.model('List', listSchema);
 app.route('/ping').get(function (req, res) {
     res.send('pong');
 });
-app.get('/', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+app.get('/todo', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         Item.find({}, function (err, foundItems) {
             if (foundItems.length === 0) {
@@ -95,7 +99,7 @@ app.get('/', function (req, res) { return __awaiter(void 0, void 0, void 0, func
                         console.log('Successfully saved default items to DB.');
                     }
                 });
-                res.redirect('/');
+                res.redirect('/todo');
             }
             else {
                 res.render('list', {
@@ -119,7 +123,7 @@ app.get('/:customListName', function (req, res) {
                     items: defaultItems,
                 });
                 list.save();
-                res.redirect('/' + customListName);
+                res.redirect('/todo' + customListName);
             }
             else {
                 //Show an existing list
@@ -132,7 +136,7 @@ app.get('/:customListName', function (req, res) {
         }
     });
 });
-app.post('/', function (req, res) {
+app.post('/todo', function (req, res) {
     var itemName = req.body.newItem;
     var listName = req.body.list;
     var item = new Item({
@@ -140,13 +144,13 @@ app.post('/', function (req, res) {
     });
     if (listName === 'Today') {
         item.save();
-        res.redirect('/');
+        res.redirect('/todo');
     }
     else {
         List.findOne({ name: listName }, function (err, foundList) {
             foundList.items.push(item);
             foundList.save();
-            res.redirect('/' + listName);
+            res.redirect('/todo' + listName);
         });
     }
 });
@@ -157,14 +161,14 @@ app.post('/delete', function (req, res) {
         Item.findByIdAndRemove(checkedItemId, function (err) {
             if (!err) {
                 console.log('Successfully deleted checked item.');
-                res.redirect('/');
+                res.redirect('/todo');
             }
         });
     }
     else {
         List.findOneAndUpdate({ name: listName }, { $pull: { items: { _id: checkedItemId } } }, function (err, foundList) {
             if (!err) {
-                res.redirect('/' + listName);
+                res.redirect('/todo' + listName);
             }
         });
     }
@@ -173,10 +177,7 @@ app.get('/about', function (req, res) {
     res.render('about');
 });
 module.exports.handler = (0, serverless_http_1.default)(app);
-var port = process.env.PORT;
-if (port == null || port == '') {
-    port = '3000';
-}
+var port = process.env.PORT || 3000;
 app.listen(port, function () {
     console.log('Server has started successfully');
 });
