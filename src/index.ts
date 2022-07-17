@@ -15,6 +15,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
+app.get('/', (req: Request, res: Response) => {
+  res.redirect('/Today');
+});
+
 app.set('views', path.join(__dirname, '../views'));
 
 app.use(express.static('public'));
@@ -65,7 +69,7 @@ app.route('/ping').get((req: Request, res: Response) => {
   res.send('pong');
 });
 
-app.get('/', async (req: Request, res: Response) => {
+app.get('/Today', async (req: Request, res: Response) => {
   Item.find({}, (err: Error, foundItems: itemSchemaInterface[]) => {
     if (foundItems.length === 0) {
       Item.insertMany(defaultItems, function (err) {
@@ -115,7 +119,7 @@ app.get('/:customListName', (req: Request, res: Response) => {
   );
 });
 
-app.post('/', (req: Request, res: Response) => {
+app.post('/Today', (req: Request, res: Response) => {
   const itemName = req.body.newItem;
   const listName = req.body.list;
 
@@ -126,7 +130,7 @@ app.post('/', (req: Request, res: Response) => {
 
   if (listName === 'Today') {
     item.save();
-    res.redirect('/');
+    res.redirect('/Today');
   } else {
     List.findOne(
       { name: listName },
@@ -147,7 +151,7 @@ app.post('/delete', (req: Request, res: Response) => {
     Item.findByIdAndRemove(checkedItemId, (err: Error) => {
       if (!err) {
         console.log('Successfully deleted checked item.');
-        res.redirect('/');
+        res.redirect('/Today');
       }
     });
   } else {

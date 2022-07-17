@@ -52,6 +52,9 @@ app.set('view engine', 'ejs');
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
+app.get('/', function (req, res) {
+    res.redirect('/Today');
+});
 app.set('views', path_1.default.join(__dirname, '../views'));
 app.use(express_1.default.static('public'));
 var year = new Date().getFullYear();
@@ -80,7 +83,7 @@ var List = mongoose_1.default.model('List', listSchema);
 app.route('/ping').get(function (req, res) {
     res.send('pong');
 });
-app.get('/', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+app.get('/Today', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         Item.find({}, function (err, foundItems) {
             if (foundItems.length === 0) {
@@ -129,7 +132,7 @@ app.get('/:customListName', function (req, res) {
         }
     });
 });
-app.post('/', function (req, res) {
+app.post('/Today', function (req, res) {
     var itemName = req.body.newItem;
     var listName = req.body.list;
     var item = new Item({
@@ -138,7 +141,7 @@ app.post('/', function (req, res) {
     console.log(listName);
     if (listName === 'Today') {
         item.save();
-        res.redirect('/');
+        res.redirect('/Today');
     }
     else {
         List.findOne({ name: listName }, function (err, foundList) {
@@ -155,7 +158,7 @@ app.post('/delete', function (req, res) {
         Item.findByIdAndRemove(checkedItemId, function (err) {
             if (!err) {
                 console.log('Successfully deleted checked item.');
-                res.redirect('/');
+                res.redirect('/Today');
             }
         });
     }
