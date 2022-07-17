@@ -21,8 +21,8 @@ app.use(express.static('public'));
 let year = new Date().getFullYear();
 
 mongoose.connect(
-  `mongodb://localhost:27017/todoDB`
-  // process.env.MONGO_URL
+  // `mongodb://localhost:27017/todoDB`
+  process.env.MONGO_URL
 );
 
 interface itemSchemaInterface extends mongoose.Document {
