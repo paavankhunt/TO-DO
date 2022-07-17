@@ -40,27 +40,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 //jshint esversion:6
+var serverless_http_1 = __importDefault(require("serverless-http"));
 var express_1 = __importDefault(require("express"));
 var body_parser_1 = __importDefault(require("body-parser"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var lodash = require('lodash');
 var cors_1 = __importDefault(require("cors"));
-var path_1 = __importDefault(require("path"));
 var app = (0, express_1.default)();
 require('dotenv').config();
+var NODE_OPTIONS = '--unhandled-rejections';
 app.set('view engine', 'ejs');
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
-app.get('/', function (req, res) {
-    res.redirect('/Today');
-});
-app.set('views', path_1.default.join(__dirname, '../views'));
 app.use(express_1.default.static('public'));
 var year = new Date().getFullYear();
 mongoose_1.default.connect(
-// `mongodb://localhost:27017/todoDB`
+// `mongodb://localhost:27017/blogDB`,
 process.env.MONGO_URL);
+app.get('/', function (req, res) {
+    res.redirect('/todo');
+});
 var itemSchema = new mongoose_1.default.Schema({
     name: String,
 });
@@ -83,7 +83,7 @@ var List = mongoose_1.default.model('List', listSchema);
 app.route('/ping').get(function (req, res) {
     res.send('pong');
 });
-app.get('/Today', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+app.get('/todo', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         Item.find({}, function (err, foundItems) {
             if (foundItems.length === 0) {
@@ -95,7 +95,7 @@ app.get('/Today', function (req, res) { return __awaiter(void 0, void 0, void 0,
                         console.log('Successfully saved default items to DB.');
                     }
                 });
-                res.redirect('/');
+                res.redirect('/todo');
             }
             else {
                 res.render('list', {
@@ -119,7 +119,7 @@ app.get('/:customListName', function (req, res) {
                     items: defaultItems,
                 });
                 list.save();
-                res.redirect('/' + customListName);
+                res.redirect('/todo' + customListName);
             }
             else {
                 //Show an existing list
@@ -132,22 +132,21 @@ app.get('/:customListName', function (req, res) {
         }
     });
 });
-app.post('/Today', function (req, res) {
+app.post('/todo', function (req, res) {
     var itemName = req.body.newItem;
     var listName = req.body.list;
     var item = new Item({
         name: itemName,
     });
-    console.log(listName);
     if (listName === 'Today') {
         item.save();
-        res.redirect('/Today');
+        res.redirect('/todo');
     }
     else {
         List.findOne({ name: listName }, function (err, foundList) {
             foundList.items.push(item);
             foundList.save();
-            res.redirect('/' + listName);
+            res.redirect('/todo' + listName);
         });
     }
 });
@@ -158,14 +157,14 @@ app.post('/delete', function (req, res) {
         Item.findByIdAndRemove(checkedItemId, function (err) {
             if (!err) {
                 console.log('Successfully deleted checked item.');
-                res.redirect('/Today');
+                res.redirect('/todo');
             }
         });
     }
     else {
         List.findOneAndUpdate({ name: listName }, { $pull: { items: { _id: checkedItemId } } }, function (err, foundList) {
             if (!err) {
-                res.redirect('/' + listName);
+                res.redirect('/todo' + listName);
             }
         });
     }
@@ -173,6 +172,7 @@ app.post('/delete', function (req, res) {
 app.get('/about', function (req, res) {
     res.render('about');
 });
+module.exports.handler = (0, serverless_http_1.default)(app);
 var port = process.env.PORT || 3000;
 app.listen(port, function () {
     console.log('Server has started successfully');

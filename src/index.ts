@@ -1,13 +1,14 @@
 //jshint esversion:6
+import ServerlessHttp from 'serverless-http';
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 const lodash = require('lodash');
 import cors from 'cors';
 import { Request, Response } from 'express';
-import path from 'path';
 const app = express();
 require('dotenv').config();
+const NODE_OPTIONS = '--unhandled-rejections';
 
 app.set('view engine', 'ejs');
 
@@ -15,19 +16,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
-app.get('/', (req: Request, res: Response) => {
-  res.redirect('/Today');
-});
-
-app.set('views', path.join(__dirname, '../views'));
-
 app.use(express.static('public'));
 let year = new Date().getFullYear();
 
 mongoose.connect(
-  // `mongodb://localhost:27017/todoDB`
+  // `mongodb://localhost:27017/blogDB`,
   process.env.MONGO_URL
 );
+
+app.get('/', (req: Request, res: Response) => {
+  res.redirect('/todo');
+});
 
 interface itemSchemaInterface extends mongoose.Document {
   name: string;
@@ -69,7 +68,7 @@ app.route('/ping').get((req: Request, res: Response) => {
   res.send('pong');
 });
 
-app.get('/Today', async (req: Request, res: Response) => {
+app.get('/todo', async (req: Request, res: Response) => {
   Item.find({}, (err: Error, foundItems: itemSchemaInterface[]) => {
     if (foundItems.length === 0) {
       Item.insertMany(defaultItems, function (err) {
@@ -79,7 +78,7 @@ app.get('/Today', async (req: Request, res: Response) => {
           console.log('Successfully saved default items to DB.');
         }
       });
-      res.redirect('/');
+      res.redirect('/todo');
     } else {
       res.render('list', {
         listTitle: 'Today',
@@ -104,7 +103,7 @@ app.get('/:customListName', (req: Request, res: Response) => {
             items: defaultItems,
           });
           list.save();
-          res.redirect('/' + customListName);
+          res.redirect('/todo' + customListName);
         } else {
           //Show an existing list
 
@@ -119,25 +118,24 @@ app.get('/:customListName', (req: Request, res: Response) => {
   );
 });
 
-app.post('/Today', (req: Request, res: Response) => {
+app.post('/todo', (req: Request, res: Response) => {
   const itemName = req.body.newItem;
   const listName = req.body.list;
 
   const item = new Item({
     name: itemName,
   });
-  console.log(listName);
 
   if (listName === 'Today') {
     item.save();
-    res.redirect('/Today');
+    res.redirect('/todo');
   } else {
     List.findOne(
       { name: listName },
       (err: Error, foundList: listSchemaInterface) => {
         foundList.items.push(item);
         foundList.save();
-        res.redirect('/' + listName);
+        res.redirect('/todo' + listName);
       }
     );
   }
@@ -151,7 +149,7 @@ app.post('/delete', (req: Request, res: Response) => {
     Item.findByIdAndRemove(checkedItemId, (err: Error) => {
       if (!err) {
         console.log('Successfully deleted checked item.');
-        res.redirect('/Today');
+        res.redirect('/todo');
       }
     });
   } else {
@@ -160,7 +158,7 @@ app.post('/delete', (req: Request, res: Response) => {
       { $pull: { items: { _id: checkedItemId } } },
       (err: Error, foundList: listSchemaInterface) => {
         if (!err) {
-          res.redirect('/' + listName);
+          res.redirect('/todo' + listName);
         }
       }
     );
@@ -171,6 +169,7 @@ app.get('/about', (req, res) => {
   res.render('about');
 });
 
+module.exports.handler = ServerlessHttp(app);
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log('Server has started successfully');
