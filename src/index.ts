@@ -25,6 +25,7 @@ mongoose.connect(
 );
 
 app.get('/', (req: Request, res: Response) => {
+  res.send({ hello: 'world' });
   res.redirect('/todo');
 });
 

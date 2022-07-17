@@ -59,6 +59,7 @@ mongoose_1.default.connect(
 // `mongodb://localhost:27017/blogDB`,
 process.env.MONGO_URL);
 app.get('/', function (req, res) {
+    res.send({ hello: 'world' });
     res.redirect('/todo');
 });
 var itemSchema = new mongoose_1.default.Schema({
