@@ -55,9 +55,9 @@ app.use((0, cors_1.default)());
 app.set('views', path_1.default.join(__dirname, '../views'));
 app.use(express_1.default.static('public'));
 var year = new Date().getFullYear();
-mongoose_1.default.connect(
-// `mongodb://localhost:27017/blogDB`,
-process.env.MONGO_URL);
+mongoose_1.default.connect("mongodb://localhost:27017/todoDB"
+// process.env.MONGO_URL
+);
 var itemSchema = new mongoose_1.default.Schema({
     name: String,
 });
@@ -135,6 +135,7 @@ app.post('/', function (req, res) {
     var item = new Item({
         name: itemName,
     });
+    console.log(listName);
     if (listName === 'Today') {
         item.save();
         res.redirect('/');

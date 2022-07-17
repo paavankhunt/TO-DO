@@ -21,8 +21,8 @@ app.use(express.static('public'));
 let year = new Date().getFullYear();
 
 mongoose.connect(
-  // `mongodb://localhost:27017/blogDB`,
-  process.env.MONGO_URL
+  `mongodb://localhost:27017/todoDB`
+  // process.env.MONGO_URL
 );
 
 interface itemSchemaInterface extends mongoose.Document {
@@ -122,6 +122,7 @@ app.post('/', (req: Request, res: Response) => {
   const item = new Item({
     name: itemName,
   });
+  console.log(listName);
 
   if (listName === 'Today') {
     item.save();
