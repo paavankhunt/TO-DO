@@ -52,7 +52,7 @@ var NODE_OPTIONS = '--unhandled-rejections';
 app.set('view engine', 'ejs');
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({ origin: '*' }));
 app.use(express_1.default.static('public'));
 var year = new Date().getFullYear();
 mongoose_1.default.connect(
