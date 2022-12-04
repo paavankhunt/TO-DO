@@ -24,11 +24,6 @@ mongoose.connect(
   process.env.MONGO_URL
 );
 
-app.get('/', (req: Request, res: Response) => {
-  res.send({ hello: 'world' });
-  res.redirect('/todo');
-});
-
 interface itemSchemaInterface extends mongoose.Document {
   name: string;
 }
@@ -69,7 +64,7 @@ app.route('/ping').get((req: Request, res: Response) => {
   res.send('pong');
 });
 
-app.get('/todo', async (req: Request, res: Response) => {
+app.get('/', async (req: Request, res: Response) => {
   Item.find({}, (err: Error, foundItems: itemSchemaInterface[]) => {
     if (foundItems.length === 0) {
       Item.insertMany(defaultItems, function (err) {
@@ -79,7 +74,7 @@ app.get('/todo', async (req: Request, res: Response) => {
           console.log('Successfully saved default items to DB.');
         }
       });
-      res.redirect('/todo');
+      res.redirect('/');
     } else {
       res.render('list', {
         listTitle: 'Today',
@@ -104,7 +99,7 @@ app.get('/:customListName', (req: Request, res: Response) => {
             items: defaultItems,
           });
           list.save();
-          res.redirect('/todo' + customListName);
+          res.redirect('/' + customListName);
         } else {
           //Show an existing list
 
@@ -119,7 +114,7 @@ app.get('/:customListName', (req: Request, res: Response) => {
   );
 });
 
-app.post('/todo', (req: Request, res: Response) => {
+app.post('/', (req: Request, res: Response) => {
   const itemName = req.body.newItem;
   const listName = req.body.list;
 
@@ -129,14 +124,14 @@ app.post('/todo', (req: Request, res: Response) => {
 
   if (listName === 'Today') {
     item.save();
-    res.redirect('/todo');
+    res.redirect('/');
   } else {
     List.findOne(
       { name: listName },
       (err: Error, foundList: listSchemaInterface) => {
         foundList.items.push(item);
         foundList.save();
-        res.redirect('/todo' + listName);
+        res.redirect('/' + listName);
       }
     );
   }
@@ -150,7 +145,7 @@ app.post('/delete', (req: Request, res: Response) => {
     Item.findByIdAndRemove(checkedItemId, (err: Error) => {
       if (!err) {
         console.log('Successfully deleted checked item.');
-        res.redirect('/todo');
+        res.redirect('/');
       }
     });
   } else {
@@ -159,7 +154,7 @@ app.post('/delete', (req: Request, res: Response) => {
       { $pull: { items: { _id: checkedItemId } } },
       (err: Error, foundList: listSchemaInterface) => {
         if (!err) {
-          res.redirect('/todo' + listName);
+          res.redirect('/' + listName);
         }
       }
     );
